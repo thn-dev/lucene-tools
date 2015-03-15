@@ -1,0 +1,118 @@
+<!--
+* Author: Tri H. Nguyen
+*
+-->
+<project name="lucene4-targets" basedir="..">
+    <!-- =================================================================== -->
+    <!-- Properties                                                          -->
+    <!-- =================================================================== -->
+    <property name="lucene4.name" value="lucene4"/>
+    <property name="lucene4.package.path" value="${src.package.path}/lucene4"/>
+    <property name="lucene4.package.name" value="${src.package.name}.lucene4"/>
+
+    <!-- =================================================================== -->
+    <!-- deploy.cmd.lucene4                                                  -->
+    <!-- =================================================================== -->
+    <target name="deploy.cmd.lucene4" depends="dist.cmd.lucene4"
+            description="Creates command-line application"
+    >
+        <property name="deploy.cmd.lucene4" value="${deploy.cmd}/lucene4"/>
+        <property name="deploy.cmd.lucene4.lib" value="${deploy.cmd.lucene4}/lib"/>
+
+        <mkdir dir="${deploy.cmd.lucene4}"/>
+        <mkdir dir="${deploy.cmd.lucene4.lib}"/>
+
+        <!-- copy files to deploy/cmd/lucene4 location -->
+        <copy todir="${deploy.cmd.lucene4}/config" >
+            <fileset dir="${config}">
+                <include name="log4j.xml" />
+            </fileset>
+        </copy>
+
+        <copy todir="${deploy.cmd.lucene4}/bin" >
+            <fileset dir="${bin}">
+                <include name="lucene4.sh" />
+            </fileset>
+        </copy>
+
+        <!-- copy JAR files to deploy/cmd/lucene4/lib location -->
+        <copy todir="${deploy.cmd.lucene4.lib}" >
+            <fileset dir="${dist.lib}">
+                <include name="${lucene4.name}.jar" />
+                <include name="${ant.project.name}_libs.jar" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- dist.cmd.lucene4 -->
+    <target name="dist.cmd.lucene4" depends="dist">
+        <jar jarfile="${dist.lib}/${lucene4.name}.jar" basedir="${build.classes}">
+            <include name="${lucene4.package.path}/lucene4.class" />
+        </jar>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- deploy.test.lucene4                                                 -->
+    <!-- =================================================================== -->
+    <target name="deploy.test.lucene4" depends="dist.test.lucene4"
+            description="Deploy applications for testing"
+    >
+        <property name="deploy.test.lucene4" value="${deploy.test}/lucene4"/>
+        <property name="deploy.test.lucene4.lib" value="${deploy.test.lucene4}/lib"/>
+
+        <mkdir dir="${deploy.test.lucene4}"/>
+        <mkdir dir="${deploy.test.lucene4.lib}"/>
+
+        <!-- copy files to deploy/test/lucene4 location -->
+        <copy todir="${deploy.test.lucene4}" >
+            <fileset dir="${conf}">
+                <include name="log4j.xml" />
+            </fileset>
+
+            <fileset dir="${scripts}">
+                <include name="lucene4_test.cmd" />
+            </fileset>
+        </copy>
+
+        <!-- copy JAR files to deploy/test/lucene4/lib location -->
+        <copy todir="${deploy.test.lucene4.lib}" >
+            <fileset dir="${dist.lib}">
+                <include name="${lucene4.name}.jar" />
+                <include name="${lucene4.name}_test.jar" />
+                <include name="${ant.project.name}_libs.jar" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- dist.test.lucene4 target -->
+    <target name="dist.test.lucene4" depends="dist.test">
+        <jar jarfile="${dist.lib}/${lucene4.name}.jar" basedir="${build.classes}">
+            <include name="${lucene4.package.path}/lucene4.class" />
+        </jar>
+
+        <jar jarfile="${dist.lib}/${lucene4.name}_test.jar" basedir="${build.test}">
+            <include name="${lucene4.package.path}/*Test.class" />
+        </jar>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- test.cmd.lucene4                                                    -->
+    <!-- =================================================================== -->
+    <path id="lucene4.classpath">
+        <pathelement location="${conf}"/>
+        <pathelement location="${dist.lib}/${lucene4.name}.jar"/>
+        <pathelement location="${dist.lib}/${lucene4.name}_test.jar"/>
+        <pathelement location="${dist.lib}/${ant.project.name}_libs.jar"/>
+    </path>
+
+    <!-- test.cmd.lucene4 -->
+    <target name="test.cmd.lucene4" depends="dist.test.lucene4"
+        description="Tests lucene4 module"
+    >
+        <junit>
+            <classpath refid="lucene4.classpath" />
+            <formatter type="brief" usefile="false" />
+            <test name="${lucene4.package.name}.lucene4Test" />
+        </junit>
+    </target>
+</project>

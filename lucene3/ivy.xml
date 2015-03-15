@@ -1,0 +1,23 @@
+<ivy-module version="2.0">
+  <info organisation="thn" module="lucene3-tools"/>
+
+  <configurations>
+    <conf name="default"/>
+    <conf name="test"/>
+  </configurations>
+
+  <publications>
+    <artifact />
+  </publications>
+
+  <dependencies>
+    <!-- third-party -->
+    <dependency org="log4j" name="log4j" rev="1.2.17" transitive="false" conf="*->default"/>
+
+    <!-- lucene3 -->
+    <dependency org="org.apache.lucene" name="lucene-core" rev="3.6.2" conf="*->default"/>
+
+    <!-- unit testing -->
+    <dependency org="junit" name="junit" rev="4.12" conf="test->default"/>
+  </dependencies>
+</ivy-module>

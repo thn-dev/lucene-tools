@@ -1,0 +1,15 @@
+<!--
+*
+* Author: Tri H. Nguyen
+*
+-->
+<project name="dist-targets" basedir="..">
+    <!-- bundle.apache package -->
+    <target name="bundle.apache" depends="init" >
+        <jar jarfile="${dist.lib}/apache_libs.jar">
+            <zipgroupfileset dir="${lib}/apache">
+                <include name="**/*.jar" />
+            </zipgroupfileset>
+        </jar>
+    </target>
+</project>

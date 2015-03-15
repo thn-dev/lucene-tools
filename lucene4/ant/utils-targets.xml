@@ -1,0 +1,36 @@
+<!-- 
+*
+* Author: Tri H. Nguyen
+*
+-->
+<project name="utils-targets" basedir="..">
+    <!-- target: update.dir.perm -->
+    <target name="update.dir.perm">
+        <chmod perm="${dir.perm}">
+            <fileset dir="${dir.home}">
+                <include name="**/*.sh"/>
+            </fileset>
+        </chmod>
+    </target>  
+    
+    <!-- target: update.mongo -->
+    <target name="update.mongo">
+        <replace file="${conf.file}">
+            <replacefilter token="@mongodb.host@" value="${mongodb.host}"/>
+            <replacefilter token="@mongodb.port@" value="${mongodb.port}"/>
+            <replacefilter token="@mongodb.dbname@" value="${mongodb.dbname}"/>
+            <replacefilter token="@mongodb.collection@" value="${mongodb.collection}"/>
+        </replace>
+    </target>
+    
+    <!-- target: update.mysql -->
+    <target name="update.mysql">
+        <replace file="${conf.file}">
+            <replacefilter token="@jdbc.driver@" value="${jdbc.driver}"/>
+            <replacefilter token="@jdbc.connection.string@" value="${jdbc.connection.string}"/>
+            <replacefilter token="@jdbc.url@" value="${jdbc.url}"/>
+            <replacefilter token="@jdbc.user@" value="${jdbc.user}"/>
+            <replacefilter token="@jdbc.password@" value="${jdbc.password}"/>
+        </replace>
+    </target>    
+</project>

@@ -1,0 +1,188 @@
+<!--
+* Author: Tri H. Nguyen
+*
+-->
+<project name="default-targets" basedir="..">
+
+    <!-- =================================================================== -->
+    <!-- init target                                                         -->
+    <!-- =================================================================== -->
+    <target name="init">
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build.classes}"/>
+
+        <mkdir dir="${dist}"/>
+        <mkdir dir="${dist.lib}"/>
+
+        <mkdir dir="${deploy}"/>
+
+        <mkdir dir="${javadoc}"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- clean.all target                                                    -->
+    <!-- =================================================================== -->
+    <target name="clean" description="Remove unused directories">
+        <delete dir="${build}"/>
+
+        <antcall target="clean.lib"/>
+        <antcall target="clean.dist"/>
+        <antcall target="clean.deploy"/>
+        <antcall target="clean.javadoc"/>
+        <antcall target="clean.reports"/>
+    </target>
+
+    <!-- clean.lib target -->
+    <target name="clean.lib">
+        <delete dir="${lib}"/>
+    </target>
+
+    <!-- clean.dist target -->
+    <target name="clean.dist">
+        <delete dir="${dist}"/>
+    </target>
+
+    <!-- clean.deploy target -->
+    <target name="clean.deploy">
+        <delete dir="${deploy}"/>
+    </target>
+
+    <!-- clean.javadoc target -->
+    <target name="clean.javadoc">
+        <delete dir="${javadoc}"/>
+    </target>
+
+    <!-- clean.reports target -->
+    <target name="clean.reports">
+        <delete dir="${reports}"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- deploy.cmd target                                                   -->
+    <!-- =================================================================== -->
+    <target name="deploy.cmd" depends="dist"
+            description="Creates command-line apps for deployment"
+    >
+        <copy todir="${deploy.cmd}/lib" >
+            <fileset dir="${dist.lib}">
+                <include name="**/*.jar" />
+            </fileset>
+            <fileset dir="${lib}/default">
+                <include name="**/*.jar" />
+            </fileset>
+        </copy>
+
+        <copy todir="${deploy.cmd}/config" >
+            <fileset dir="${config}"/>
+        </copy>
+
+        <copy todir="${deploy.cmd}/bin" >
+            <fileset dir="${bin}"/>
+        </copy>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- dist target                                                         -->
+    <!-- =================================================================== -->
+    <target name="dist">
+        <antcall target="jar"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- compile.java target                                                 -->
+    <!-- =================================================================== -->
+    <target name="compile.java">
+        <javac srcdir="${src.java}"
+               destdir="${build.classes}"
+               verbose="false"
+               debug="true"
+               deprecation="true"
+               includeAntRuntime="false">
+
+        <compilerarg value="-Xlint:unchecked" />
+
+        <classpath>
+                <fileset dir="${lib}">
+                    <include name="**/*.jar"/>
+                    <include name="**/*.zip"/>
+                </fileset>
+
+                <pathelement location="${lib}"/>
+                <pathelement location="${build.classes}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- jar target                                                     -->
+    <!-- =================================================================== -->
+    <!-- compile and build a JAR file -->
+    <target name="jar">
+        <antcall target="init"/>
+        <antcall target="ivy.resolve"/>
+        <antcall target="compile.java"/>
+
+        <jar jarfile="${dist.lib}/${ant.project.name}.jar"
+             basedir="${build.classes}"
+             includes="**/*.class"
+        />
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- jar.libs target                                                     -->
+    <!-- =================================================================== -->
+    <!-- third party libraries (combine jar files) -->
+    <!--
+    since it takes a while to combine all JARs together, add file checking in
+    to see if it exists or not. If it exists, don't re-build it to save time
+    -->
+    <target name="jar.libs">
+        <echo>... combining all JAR libraries into a single JAR</echo>
+        <condition property="jar.present">
+        <available filepath="${dist.lib}" file="${ant.project.name}_libs.jar"/>
+        </condition>
+
+        <antcall target="skip.libs" />
+        <antcall target="build.libs" />
+    </target>
+
+    <target name="skip.libs" if="jar.present">
+        <echo>... ${ant.project.name}_libs.jar already exists</echo>
+    </target>
+
+    <target name="build.libs" unless="jar.present">
+        <echo>... creating ${ant.project.name}_libs.jar ...</echo>
+        <jar jarfile="${dist.lib}/${ant.project.name}_libs.jar">
+            <zipgroupfileset dir="${lib}">
+                <include name="**/*.jar" />
+            </zipgroupfileset>
+        </jar>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- javadoc target                                                      -->
+    <!-- =================================================================== -->
+    <target name="javadoc">
+        <javadoc packagenames="${src.package.name}.*"
+           sourcepath="${src.java}"
+           destdir="${javadoc}"
+           defaultexcludes="yes"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="${app.title}"
+           bottom="${app.copyright}"
+        >
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <fileset dir="lib">
+                    <include name="**/*.jar"/>
+                    <include name="**/*.zip"/>
+                </fileset>
+                <pathelement location="${build.classes}"/>
+            </classpath>
+
+            <doctitle><![CDATA[<h1>${app.title}</h1>]]></doctitle>
+        </javadoc>
+    </target>
+</project>

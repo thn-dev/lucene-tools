@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="false" xmlns:log4j="http://jakarta.apache.org/log4j/">
+        
+	<!-- Normal Logger to console -->
+	<appender name="NormalConsole" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n"/>
+		</layout>
+	</appender>
+	
+	<appender name="HalfDetailedConsole" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] %m%n"/>
+		</layout>
+	</appender>
+
+	<!-- Detailed Logger to console -->
+	<appender name="DetailedConsole" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] (%F:%L) %M: %m%n"/>
+		</layout>
+	</appender>
+
+	<!-- Normal Logger to a log file -->
+	<appender name="NormalFile" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="sample-ant.log"/>
+		<param name="Append" value="true"/>
+		<param name="Threshold" value="info"/>
+		
+		<!-- Rollover at midnight each day -->
+		<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+		
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%m%n"/>
+		</layout>	    
+	</appender>
+
+	<!-- Detailed Logger to a log file -->
+	<appender name="DetailedFile" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="sample-ant_debug.log"/>
+		<param name="Append" value="true"/>
+		<param name="Threshold" value="debug"/>
+		
+		<!-- Rollover at midnight each day -->
+		<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+		
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] (%F:%L) %M: %m%n"/>
+		</layout>	    
+	</appender>
+
+	<!-- Detailed Logger to a log file -->
+	<appender name="HalfDetailedFile" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="sample-ant_debug.log"/>
+		<param name="Append" value="true"/>
+		<param name="Threshold" value="debug"/>
+		
+		<!-- Rollover at midnight each day -->
+		<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+		
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} [%-5p] %m%n"/>
+		</layout>	    
+	</appender>
+
+	<!-- Logger settings -->
+	<root>
+		<priority value="info" />
+		<appender-ref ref="HalfDetailedConsole"/>
+		<appender-ref ref="DetailedFile"/>
+	</root>
+
+</log4j:configuration>
+ 

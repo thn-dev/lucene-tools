@@ -1,0 +1,101 @@
+<!-- 
+* Author: Tri H. Nguyen
+* $Revision: $  $Date: $
+*
+-->
+<project name="test-targets" basedir="..">
+
+    <!-- =================================================================== -->
+    <!-- properties                                                          -->
+    <!-- =================================================================== -->
+    <property name="test" value="test"/>
+    <property name="test.java" value="${test}/java"/>
+    <property name="build.test" value="${build}/test"/>
+    <property name="deploy.test" value="${deploy}/test"/>
+    <property name="deploy.test.lib" value="${deploy.test}/lib"/>
+
+    <!-- =================================================================== -->
+    <!-- init.test target                                                    -->
+    <!-- =================================================================== -->
+    <target name="init.test">
+        <mkdir dir="${build.test}"/>
+        <mkdir dir="${deploy.test}"/>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- clean.test target                                                   -->
+    <!-- =================================================================== -->
+    <target name="clean.test">
+        <delete dir="${build.test}"/>
+        <delete dir="${deploy.test}"/>
+    </target>
+    
+    <!-- =================================================================== -->
+    <!-- compile.test target                                                 -->
+    <!-- =================================================================== -->
+    <target name="compile.test">
+        <javac srcdir="${test.java}" 
+               destdir="${build.test}"
+               verbose="false"
+               debug="true"
+               deprecation="true"
+               includeAntRuntime="false">
+            <classpath>
+                <fileset dir="${lib}">
+                    <include name="**/*.jar"/>
+                    <include name="**/*.zip"/>
+                </fileset>
+                
+                <pathelement location="${lib}"/>
+                <pathelement location="${build.classes}"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <!-- =================================================================== -->
+    <!-- jar.test target                                                     -->
+    <!-- =================================================================== -->
+    <target name="jar.test">
+        <antcall target="init.test"/>
+        <antcall target="compile.test"/>
+
+        <jar jarfile="${dist.lib}/${ant.project.name}_test.jar"
+             basedir="${build.test}"
+             includes="**/*.class"
+        />
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- deploy.cmd.test target                                              -->
+    <!-- =================================================================== -->
+    <target name="deploy.cmd.test" depends="dist.test"
+            description="Creates applications for testing"
+    >
+        <mkdir dir="${deploy.test.lib}"/>
+        
+        <!-- copy files to deploy/test location -->
+        <copy todir="${deploy.test}" >
+            <fileset dir="${conf}"/>
+            <fileset dir="${scripts}">
+                <include name="setenv.cmd" />
+                <include name="*_test.cmd" />
+            </fileset>
+        </copy>
+        
+        <!-- copy JAR files to deploy/test/lib location -->
+        <copy todir="${deploy.test.lib}" >
+            <fileset dir="${dist.lib}">
+                <include name="**/*.jar" />
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- =================================================================== -->
+    <!-- dist.test target                                                    -->
+    <!-- =================================================================== -->
+    <target name="dist.test">
+        <antcall target="dist"/>
+        <antcall target="jar.test"/>
+    </target>
+    
+</project>
