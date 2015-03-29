@@ -13,6 +13,7 @@
   <dependencies>
     <!-- third-party -->
     <dependency org="log4j" name="log4j" rev="1.2.17" transitive="false" conf="*->default"/>
+    <dependency org="org.apache.commons" name="commons-lang3" rev="3.3.2" conf="test->default;%->@"/>
 
     <!-- lucene4 -->
     <dependency org="org.apache.lucene" name="lucene-core" rev="4.10.4" conf="*->default"/>
@@ -22,6 +23,9 @@
 
     <dependency org="org.apache.lucene" name="lucene-queries" rev="4.10.4" conf="*->default"/>
     <dependency org="org.apache.lucene" name="lucene-classification" rev="4.10.4" conf="*->default"/>
+    
+    <!-- pdfbox -->
+    <dependency org="org.apache.pdfbox" name="pdfbox" rev="1.8.8" conf="test->default;%->@"/>
 
     <!-- unit testing -->
     <dependency org="junit" name="junit" rev="4.12" conf="test->default"/>

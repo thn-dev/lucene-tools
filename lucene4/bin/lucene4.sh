@@ -16,4 +16,4 @@ export CLASSPATH
 
 APP_NAME=thn.tools.Lucene4
 
-java $APP_NAME $*
+java $APP_NAME "$@"
