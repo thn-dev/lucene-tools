@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ivysettings>
+  <property name="publish.dir" value="${ivy.home}/dev"/>
+
+  <settings defaultResolver="central"/>
+
+  <resolvers>
+    <ibiblio name="central" m2compatible="true"/>
+    <filesystem name="local">
+      <ivy pattern="${publish.dir}/[module]/ivy-[revision].xml"/>
+      <artifact pattern="${publish.dir}/[module]/[artifact]-[revision].[ext]"/>
+    </filesystem>
+  </resolvers>
+
+  <modules>
+    <module organisation="org.slf4j" resolver="central"/>
+    <module organisation="junit" name="junit" resolver="central"/>
+  </modules>
+</ivysettings>
