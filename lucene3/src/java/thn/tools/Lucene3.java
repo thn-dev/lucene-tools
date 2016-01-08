@@ -43,6 +43,9 @@ public class Lucene3
     public static final String CMD_CHECK = "check";
     public static final String CMD_FIELDS = "fields";
     public static final String CMD_SEARCH = "search";
+
+    public static final String CMD_MULTI_INDEX = "mindex";
+    public static final String CMD_MULTI_SEARCH = "msearch";
     public static final String CMD_FIND_BYID = "findByID";
     public static final String CMD_FIND_BYCOUNT = "findByCount";
     public static final String CMD_FIND_BYRANGE = "findByRange";
@@ -69,85 +72,111 @@ public class Lucene3
         boolean openIndex = false;
 
         this.indexLocation = indexLocation;
-        try {
+        try
+        {
             this.indexDirectory = FSDirectory.open(new File(indexLocation));
             this.indexAnalyzer = new StandardAnalyzer(indexVersion);
             openIndex = true;
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to open index at " + indexLocation, ioe);
         }
         return openIndex;
     }
 
-    public void closeIndex() {
-        try {
-            if (indexDirectory != null) {
+    public void closeIndex()
+    {
+        try
+        {
+            if (indexDirectory != null)
+            {
                 indexDirectory.close();
             }
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to close index at " + indexLocation, ioe);
         }
     }
 
-    public void index(final String inputLocation, final boolean newIndex) {
+    public void index(final String inputLocation, final boolean newIndex)
+    {
         this.indexConfig = new IndexWriterConfig(indexVersion, indexAnalyzer);
 
-        if (newIndex) {
+        if (newIndex)
+        {
             indexConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-        } else {
+        }
+        else
+        {
             indexConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
         }
 
-        try (final IndexWriter indexWriter = new IndexWriter(indexDirectory, indexConfig)) {
+        try (final IndexWriter indexWriter = new IndexWriter(indexDirectory, indexConfig))
+        {
             final File dir = new File(inputLocation);
             final File[] files = dir.listFiles();
-            for (final File file : files) {
+            for (final File file : files)
+            {
                 indexFile(file, indexWriter);
             }
-        } catch (final CorruptIndexException cie) {
+        }
+        catch (final CorruptIndexException cie)
+        {
             log.error("Index is corrupted", cie);
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to access the index", ioe);
         }
     }
 
-    public void indexFile(final File inputFile, final IndexWriter indexWriter) {
-        try {
+    public void indexFile(final File inputFile, final IndexWriter indexWriter)
+    {
+        try
+        {
             log.info("f: " + inputFile.getCanonicalPath());
             final Document document = create(inputFile);
 
-            if (document != null) {
-                if (indexWriter.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
+            if (document != null)
+            {
+                if (indexWriter.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE)
+                {
                     indexWriter.addDocument(create(inputFile));
-                } else {
+                }
+                else
+                {
                     indexWriter.updateDocument(new Term(FIELD_FILE_PATH, inputFile.getCanonicalPath()), document);
                 }
             }
 
-        } catch (final FileNotFoundException fnfe) {
+        }
+        catch (final FileNotFoundException fnfe)
+        {
             log.info("Input file does not exist", fnfe);
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.info("Invalid input file", ioe);
         }
     }
 
-    public Document create(final File inputFile) throws FileNotFoundException, IOException {
+    public Document create(final File inputFile) throws FileNotFoundException, IOException
+    {
         final Document document = new Document();
 
         final String path = inputFile.getCanonicalPath();
-        document.add(new Field(FIELD_FILE_PATH, path, Field.Store.YES,
-                Field.Index.NOT_ANALYZED_NO_NORMS));
+        document.add(new Field(FIELD_FILE_PATH, path, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
 
         final Reader reader = new FileReader(inputFile);
         document.add(new Field(FIELD_FILE_CONTENT, reader));
 
-        final NumericField modifiedDate = new NumericField(FIELD_FILE_DATE,
-                Field.Store.YES, true);
+        final NumericField modifiedDate = new NumericField(FIELD_FILE_DATE, Field.Store.YES, true);
         modifiedDate.setLongValue(inputFile.lastModified());
         document.add(modifiedDate);
 
-        final NumericField fileSize = new NumericField(FIELD_FILE_SIZE,
-                Field.Store.YES, true);
+        final NumericField fileSize = new NumericField(FIELD_FILE_SIZE, Field.Store.YES, true);
         fileSize.setLongValue(inputFile.length());
         document.add(fileSize);
 
@@ -159,41 +188,53 @@ public class Lucene3
         try (final IndexReader indexReader = IndexReader.open(indexDirectory);
                 final IndexSearcher indexSearcher = new IndexSearcher(indexReader);)
         {
-            final QueryParser parser = new QueryParser(indexVersion,
-                    FIELD_FILE_CONTENT, indexAnalyzer);
+            final QueryParser parser = new QueryParser(indexVersion, FIELD_FILE_CONTENT, indexAnalyzer);
             final Query query = parser.parse(queryString);
 
             final TopDocs searchResults = indexSearcher.search(query, (numberOfPages * resultsPerPage));
 
             log.info("\nSearch Results");
             log.info("- results: " + searchResults.scoreDocs.length);
-            if (searchResults.totalHits >= 0) {
+            if (searchResults.totalHits >= 0)
+            {
                 log.info("- total.hits: " + searchResults.totalHits);
-            } else {
+            }
+            else
+            {
                 log.info("- total.hits: (invalid results)");
             }
             log.info("");
 
-            if (displayResults) {
+            if (displayResults)
+            {
                 final ScoreDoc[] results = searchResults.scoreDocs;
-                for (int index = 0; index < results.length; index++) {
+                for (int index = 0; index < results.length; index++)
+                {
                     display(indexSearcher.doc(results[index].doc), results.clone()[index].doc, index);
                 }
             }
-                } catch (final IOException ioe) {
-                    log.error("Unable to open the index", ioe);
-                } catch (final ParseException pe) {
-                    log.error("Unable to parse the query", pe);
-                }
+        }
+        catch (final IOException ioe)
+        {
+            log.error("Unable to open the index", ioe);
+        }
+        catch (final ParseException pe)
+        {
+            log.error("Unable to parse the query", pe);
+        }
     }
 
-    private void display(final Document document, final long documentID, final long resultOrder) {
+    private void display(final Document document, final long documentID, final long resultOrder)
+    {
         final List<Fieldable> fieldNames = document.getFields();
 
         final StringBuilder data = new StringBuilder();
-        if (resultOrder >= 0) {
+        if (resultOrder >= 0)
+        {
             data.append(String.format("\n[%s] id: %s", resultOrder, documentID));
-        } else {
+        }
+        else
+        {
             data.append(String.format("\nid: %s", documentID));
         }
 
@@ -205,11 +246,11 @@ public class Lucene3
         log.info("");
     }
 
-    public void fields() {
+    public void fields()
+    {
         try (final IndexReader indexReader = IndexReader.open(indexDirectory))
         {
-            final List<Fieldable> fieldNames = indexReader.document(0)
-                    .getFields();
+            final List<Fieldable> fieldNames = indexReader.document(0).getFields();
 
             log.info("\nField Names");
             for (final Fieldable fieldName : fieldNames)
@@ -217,12 +258,15 @@ public class Lucene3
                 log.info("- " + fieldName.name());
             }
             log.info("");
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to open the index", ioe);
         }
     }
 
-    public void status() {
+    public void status()
+    {
         try (final IndexReader indexReader = IndexReader.open(indexDirectory))
         {
             log.info("\nIndex Status");
@@ -230,14 +274,18 @@ public class Lucene3
             log.info("- numDeletedDocs: " + indexReader.numDeletedDocs());
             log.info("- hasDeletions: " + indexReader.hasDeletions());
             log.info("");
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to retrieve the status of the index", ioe);
         }
     }
 
-    public void check(final boolean includeSegmentInfo) {
+    public void check(final boolean includeSegmentInfo)
+    {
         final CheckIndex checkIndex = new CheckIndex(indexDirectory);
-        try {
+        try
+        {
             final CheckIndex.Status indexStatus = checkIndex.checkIndex();
             log.info("\nIndex Status");
             log.info("- clean: " + indexStatus.clean);
@@ -246,16 +294,19 @@ public class Lucene3
             log.info("- numBadSegments: " + indexStatus.numBadSegments);
             log.info("- missingSegments: " + indexStatus.missingSegments);
 
-            if (includeSegmentInfo) {
+            if (includeSegmentInfo)
+            {
                 final List<CheckIndex.Status.SegmentInfoStatus> segmentInfos = indexStatus.segmentInfos;
 
                 log.info("\nSegment Info");
-                for (final CheckIndex.Status.SegmentInfoStatus segmentInfo : segmentInfos) {
+                for (final CheckIndex.Status.SegmentInfoStatus segmentInfo : segmentInfos)
+                {
                     log.info("- segment.name: " + segmentInfo.name);
                     log.info("- openReaderPassed: " + segmentInfo.openReaderPassed);
                     log.info("- sizeMB: " + segmentInfo.sizeMB);
 
-                    if (segmentInfo.openReaderPassed) {
+                    if (segmentInfo.openReaderPassed)
+                    {
                         log.info("- hasDeletions: " + segmentInfo.hasDeletions);
                         log.info("- docCount: " + segmentInfo.docCount);
                         log.info("- numFiles: " + segmentInfo.numFiles);
@@ -264,55 +315,78 @@ public class Lucene3
                 }
             }
             log.info("");
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error("Unable to access the index", ioe);
         }
     }
 
-    public void findByID(final int documentID) {
+    public void findByID(final int documentID)
+    {
         try (final IndexReader indexReader = IndexReader.open(indexDirectory))
         {
             find(indexReader, documentID, -1);
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.info("Unable to access the index", ioe);
         }
     }
 
-    public void findByCount(final int startID, final int count) {
+    public void findByCount(final int startID, final int count)
+    {
         try (final IndexReader indexReader = IndexReader.open(indexDirectory))
         {
-            for (int index = 0; index <= count; index++) {
+            for (int index = 0; index <= count; index++)
+            {
                 find(indexReader, (index + startID), index);
             }
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.info("Unable to access the index", ioe);
         }
     }
 
-    public void findByRange(final int startID, final int endID) {
+    public void findByRange(final int startID, final int endID)
+    {
         try (final IndexReader indexReader = IndexReader.open(indexDirectory))
         {
-            if (endID > startID) {
-                for (int index = startID; index <= endID; index++) {
+            if (endID > startID)
+            {
+                for (int index = startID; index <= endID; index++)
+                {
                     find(indexReader, index, index);
                 }
-            } else {
+            }
+            else
+            {
                 log.info(String.format("Invalid range: [%s - %s]", startID, endID));
             }
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.info("Unable to access the index", ioe);
         }
     }
 
-    public void find(final IndexReader reader, final int documentID, final int documentOrder) {
-        try {
+    public void find(final IndexReader reader, final int documentID, final int documentOrder)
+    {
+        try
+        {
             final Document document = reader.document(documentID);
-            if (document != null) {
+            if (document != null)
+            {
                 display(document, documentID, documentOrder);
             }
-        } catch (final CorruptIndexException cie) {
+        }
+        catch (final CorruptIndexException cie)
+        {
             log.error("Index is corrupted", cie);
-        } catch (final IOException ioe) {
+        }
+        catch (final IOException ioe)
+        {
             log.error(String.format("\nid: %s (invalid)", documentID));
         }
     }
@@ -365,29 +439,36 @@ public class Lucene3
                     }
                     break;
 
-                    case CMD_SEARCH:
-                        if (args.length >= 3)
+                case CMD_MULTI_INDEX:
+                    break;
+
+                case CMD_MULTI_SEARCH:
+                    break;
+
+                case CMD_SEARCH:
+                    if (args.length >= 3)
+                    {
+                        boolean displayResults = false;
+                        int numberOfPages = 1;
+                        int resultsPerPage = 1;
+
+                        final String query = args[2];
+
+                        if (args.length >= 5)
                         {
-                            boolean displayResults = false;
-                            int numberOfPages = 1;
-                            int resultsPerPage = 1;
-
-                            final String query = args[2];
-
-                            if (args.length >= 5)
-                            {
-                                resultsPerPage = Integer.parseInt(args[3]);
-                                numberOfPages = Integer.parseInt(args[4]);
-                            }
-
-                            if (args.length == 6)
-                            {
-                                displayResults = Boolean.parseBoolean(args[5]);
-                            }
-                            search(query, resultsPerPage, numberOfPages, displayResults);
-                            help = false;
+                            resultsPerPage = Integer.parseInt(args[3]);
+                            numberOfPages = Integer.parseInt(args[4]);
                         }
-                        break;
+
+                        if (args.length == 6)
+                        {
+                            displayResults = Boolean.parseBoolean(args[5]);
+                        }
+                        search(query, resultsPerPage, numberOfPages,
+                                displayResults);
+                        help = false;
+                    }
+                    break;
 
                 case CMD_FIND_BYID:
                     if (args.length == 3)
@@ -449,11 +530,13 @@ public class Lucene3
         help.append("\n- <index location> findByCount <start id> <count>");
         help.append("\n- <index location> findByRange <start id> <end id>");
         help.append("\n- <index location> search <query> [<results per page> <number of pages>] [<display results>]");
+        help.append("\n- <index location> msearch <query> <number of indexes> [<results per page> <number of pages>] [<display results>]");
         help.append("\n---");
         help.append("\n- <index location> status");
         help.append("\n- <index location> check [true (display segment info)]");
         help.append("\n---");
         help.append("\n- <index location> index <input location> [true (create new index)]");
+        help.append("\n- <index location> mindex <number of indexes> <input location> [true (create new index)]");
 
         System.out.println(help.toString());
     }

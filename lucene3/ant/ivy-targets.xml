@@ -2,9 +2,7 @@
     <!-- retrieve dependencies -->
     <target name="ivy.resolve" description="retrieve dependencies with ivy">
         <ivy:resolve/>
-
-        <ivy:retrieve conf="default" pattern="lib/[conf]/[artifact]-[revision].[ext]"/>
-        <ivy:retrieve conf="test" pattern="lib/[conf]/[artifact]-[revision].[ext]"/>
+        <ivy:retrieve pattern="lib/[conf]/[artifact](-[classifier])-[revision].[ext]"/>
     </target>
 
     <!-- report dependencies -->
